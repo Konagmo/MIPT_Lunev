@@ -1,0 +1,28 @@
+fd = eventfd(0, EFD_NONBLOCK| EFD_CLOEXEC); если там лежит 0, то на чтение блокируется,
+как не 0 - чтение разблокируется
+<-readclear - стратегия
+Отдельный файловый дескриптор - чтобы ждать сигнала от 10 разных переменных 
+- удобней чем сигнальная переменная
+
+int epoll = epoll_create1(0); 
+struct epoll_event ev;
+memset (&ev, 0, sizeof(ev));
+ev.data.fd=fd;
+ev.events=POLLIN|POLLOUT
+ev.data.ptr = ctx; - контекст
+epoll_ctl(epoll, EPOLL_CTL_AOD, fd, &ev);
+это была подготовка к одиданию
+epoll_wait(epoll, ..
+-l aio + header
+io_context_t aio
+io_setup(256, &aio)
+В конце - destroy
+
+Для чтения - нужна структура
+struct iocb io;
+io_prep_pread(&io, fd, buf, count, 0);
+io_clt_eventfd(&io, eventfd);
+io_submit(aio, 1, &io);
+epoll_wait
+io_getevents(aio, n, size, struct ioevent*,  NULL);
+close epoll, fd etc.

@@ -1,0 +1,21 @@
+        -:    0:Source:bad_malloc.h
+        -:    0:Graph:list.gcno
+        -:    0:Data:list.gcda
+        -:    0:Runs:1
+        -:    0:Programs:1
+        -:    1:#ifndef BAD_MALLOC_H
+        -:    2:#define BAD_MALLOC_H
+        -:    3:#include <stdlib.h>
+        -:    4:
+    99474:    5:void* bad_malloc(size_t num)
+        -:    6:{
+        -:    7:	/*if(num > 100)
+        -:    8:		return NULL;*/
+    99474:    9:	if(rand() % 123 ==  0)
+      842:   10:		return NULL;
+        -:   11:	else
+        -:   12:	{
+    98632:   13:		return malloc(num);
+        -:   14:	}
+        -:   15:}
+        -:   16:#endif

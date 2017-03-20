@@ -1,0 +1,26 @@
+unix BSD(berkley); unix SYS V(5) (SUN)
+SYS V IPS:
+	semophore
+	shifed memory
+	msg queue!!
+ipcs  |
+ipcrm |- посмотреть полистить и удалить
+
+msgget(key_t key, int flags)
+		0600
+		IPC_CREAT
+	floc(file, 0-255)
+	IPC_PRIVATE - new unique queue
+rm	int msgctl(msgid, IPC_RMSD, NULL);
+	int msgsnd(int msgid, const void *msg, size_t size, int msgflg);
+	int msgrcv(int msgid, void *msg, size_t size, long msgtype,
+		   int msgflg);
+struct msg {
+	long msgtype;
+	uint8_t payload[0];
+}; // size - для payload
+type = 3 - больше нуля - извлекается первое сообщение с типом 3
+type = -3 - любое сообщение извлекается с типом 1,2,3
+
+Задача: написать программу, порождающую n детей. Сначала!! После дети 
+должны напечатать свой порядковый номер, в котором они созданы.

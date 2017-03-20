@@ -1,0 +1,294 @@
+        -:    0:Source:list.c
+        -:    0:Graph:list.gcno
+        -:    0:Data:list.gcda
+        -:    0:Runs:1
+        -:    0:Programs:1
+        -:    1:#include <stdio.h>
+        -:    2:#include <stdlib.h>
+        -:    3:#include <assert.h>
+        -:    4:#include "list.h"
+        -:    5:#include "bad_malloc.h"
+        -:    6:#include <errno.h>
+        -:    7:
+        -:    8:#define BADLISTPTR -11
+        -:    9:#define EMPTYLIST -12
+        -:   10:#define BADMEM -13
+        -:   11:
+        -:   12:typedef struct Node {
+        -:   13:	struct Node *next;
+        -:   14:	int data;
+        -:   15:} Node;
+        -:   16:
+        -:   17:struct List {
+        -:   18:	Node *head;
+        -:   19:	int length;
+        -:   20:};
+        -:   21:
+        -:   22:struct Iterator {
+        -:   23:	Node *current;
+        -:   24:	Node *head;
+        -:   25:};
+        -:   26:
+      300:   27:List *CreateMyList() {
+      300:   28:	List *list = (List*) bad_malloc(sizeof(List));
+      300:   29:	if (list == NULL) {
+        4:   30:		perror("Memory allocating error");
+        4:   31:		return NULL;
+        -:   32:	}
+      296:   33:	list->head = NULL;
+      296:   34:	list->length = 0;
+      296:   35:	return list;
+        -:   36:}
+        -:   37:
+      400:   38:int getHead(List *list, int *value) {
+      400:   39:	if(list == NULL) {
+      104:   40:		perror("Bad list pointer");
+      104:   41:		return -1;
+        -:   42:	}
+      296:   43:	if (list->head == NULL) {
+      100:   44:		perror("There's no head");
+      100:   45:		return -1;
+        -:   46:	}
+      196:   47:	*value = list->head->data;
+      196:   48:	return 1;
+        -:   49:}
+        -:   50:
+        -:   51:
+   100598:   52:int push(List *list, int data) {
+   100598:   53:	if(list == NULL) {
+     2108:   54:		perror("Bad List pointer");
+     2108:   55:		return -1;
+        -:   56:
+        -:   57:	}
+    98490:   58:	Node *new_Node = bad_malloc(sizeof(Node));
+    98490:   59:	if(new_Node) {
+    97657:   60:		new_Node->data = data;
+    97657:   61:		new_Node->next = list->head;
+    97657:   62:		list->head = new_Node;
+    97657:   63:		list->length++;
+        -:   64:	}
+        -:   65:	else {
+      833:   66:		perror("Error in creationg new Node");
+      833:   67:		return 0;
+        -:   68:	}
+    97657:   69:	return 1;
+        -:   70:}
+        -:   71:
+        -:   72:
+     1300:   73:int pop(List *list, int *value) {
+     1300:   74:	if(list == NULL) {
+      122:   75:		perror("Bad List pointer");
+      122:   76:		return -1;
+        -:   77:	}
+     1178:   78:	if (list->head == NULL) {
+      100:   79:		perror("There're no elements left to extract");
+      100:   80:		perror("Just code in code");
+      100:   81:		return -1; 
+        -:   82:	}
+     1078:   83:	*value = list->head->data;
+     1078:   84:	Node *tmp = list->head->next;
+     1078:   85:	free(list->head);
+     1078:   86:	list->head = tmp;
+     1078:   87:	list->length--;
+        -:   88:
+     1078:   89:	return 1;
+        -:   90:}
+        -:   91:
+        -:   92:
+      400:   93:void deleteList(List *list) {
+      400:   94:	if(list == NULL) {
+      104:   95:		perror("Bad List pointer");
+      104:   96:		return;
+        -:   97:	}
+        -:   98:	Node *tmp;
+    97267:   99:	while (list->head != NULL) {
+    96675:  100:		tmp = list->head;
+    96675:  101:		list->head = list->head->next;
+    96675:  102:		free(tmp);
+        -:  103:	}
+      296:  104:	free(list);
+        -:  105:}
+        -:  106:
+      200:  107:int getSize(List *list) {
+      200:  108:	if(list == NULL) {
+      102:  109:		perror("Bad List pointer");
+      102:  110:		return -1;
+        -:  111:	}
+       98:  112:	Iterator *iter = CreateIterator(list);
+       98:  113:	if(!iter) {
+    #####:  114:		return -3;
+        -:  115:	}
+       98:  116:	int count = 0;
+        -:  117:	int trash;
+    96777:  118:	while (IsThereNext(iter)) {
+    96581:  119:		count++;
+        -:  120:
+    96581:  121:		GetNext(iter, &trash);
+        -:  122:	}
+       98:  123:	DeleteIterator(iter);
+       98:  124:	return count;
+        -:  125:}
+        -:  126:
+      300:  127:int isEmpty(List *list) {
+      300:  128:	if(list == NULL) {
+      104:  129:		perror("Bad List pointer");
+      104:  130:		return -1;
+        -:  131:
+        -:  132:	}
+      196:  133:	return (list->head == NULL) ? 1 : 0;
+        -:  134:}
+        -:  135:
+      200:  136:int printList(List *list) {
+      200:  137:	if(list == NULL) {
+      102:  138:		perror("Bad List pointer");
+      102:  139:		return -1;
+        -:  140:	}
+       98:  141:	Iterator *iter = CreateIterator(list);
+       98:  142:	if(!iter) {
+        2:  143:		return -3;
+        -:  144:	}
+       96:  145:	int i = 1;
+      572:  146:	for(; iter->current; i++){
+      476:  147:		printf("(%d,%d) -> ", i, iter->current->data);
+      476:  148:		iter->current = iter->current->next;
+        -:  149:	}
+       96:  150:	DeleteIterator(iter);
+       96:  151:	return 1;
+        -:  152:}
+        -:  153:
+      300:  154:int insertUniqueItem(List* list, int data) {
+      300:  155:	if(list == NULL) {
+      104:  156:		perror("Bad List pointer");
+      104:  157:		return -1;
+        -:  158:	}
+      196:  159:	Iterator *iter = CreateIterator(list);
+      196:  160:	if(!iter) {
+        1:  161:		return -3;
+        -:  162:	}
+      195:  163:	int found = 0;
+      974:  164:	while(iter->current) {
+      584:  165:		if(iter->current->data == data)
+       97:  166:			found = 1;
+      584:  167:		iter->current = iter->current->next;
+        -:  168:	}
+      195:  169:	DeleteIterator(iter);
+      195:  170:	if(found) 
+       97:  171:		return 0;
+       98:  172:	if(!push(list, data)){
+        1:  173:		return -2;
+        -:  174:	}
+        -:  175:
+       97:  176:	return 1;
+        -:  177:}
+        -:  178:
+        -:  179:
+        -:  180:/**-----------ITERATOR------------**/
+        -:  181:
+        -:  182:
+        -:  183:
+      792:  184:Iterator *CreateIterator(List *list) { 
+      792:  185:	if(list == NULL) {
+      104:  186:		perror("Bad List pointer");
+      104:  187:		errno = EFAULT;
+      104:  188:		return NULL;
+        -:  189:	}
+      688:  190:	if(list->head == NULL) {
+      100:  191:		perror("Empty List was given");
+      100:  192:		errno = EFAULT;
+      100:  193:		return NULL;
+        -:  194:	}
+      588:  195:	Iterator *iter = bad_malloc(sizeof(Iterator));
+      588:  196:	if(iter) {
+      583:  197:		iter->head = list->head;
+      583:  198:		iter->current = list->head;
+      583:  199:		return iter;
+        -:  200:	}
+        -:  201:	else {
+        5:  202:		perror("Failed to alocate memory for Iter");
+        5:  203:		errno = ENOMEM;
+        5:  204:		return NULL;
+        -:  205:	}
+        -:  206:}
+        -:  207:
+   193840:  208:int IsThereNext(Iterator *iter) {
+   193840:  209:	if(iter == NULL) {
+      100:  210:		perror("Bad iter pointer");
+      100:  211:		return -1;
+        -:  212:
+        -:  213:	}
+   193740:  214:	if(iter->current->next == NULL)
+      100:  215:		return 0;
+   193640:  216:	return 1;
+        -:  217:}
+        -:  218:
+      200:  219:int InsertItem(Iterator *iter, int data) {
+      200:  220:	if(iter == NULL) {
+      104:  221:		perror("Bad iter pointer");
+      104:  222:		return -1;
+        -:  223:	}
+       96:  224:	Node *new_Node = bad_malloc(sizeof(Node));
+       96:  225:	if(new_Node == NULL) {
+    #####:  226:		perror("Error in creationg new Node");
+    #####:  227:		return 0;
+        -:  228:	}
+       96:  229:	new_Node->data = data;
+       96:  230:	new_Node->next = iter->current->next;
+       96:  231:	iter->current->next = new_Node;
+        -:  232:	
+       96:  233:	return 1;
+        -:  234:}
+        -:  235:
+      200:  236:int GetCurrent(Iterator *iter, int *value) {
+      200:  237:	if(iter == NULL) {
+      104:  238:		perror("Bad iter pointer");
+      104:  239:		return -1;
+        -:  240:	}
+       96:  241:	*value = iter->current->data;
+       96:  242:	return 1;
+        -:  243:}
+        -:  244:
+        -:  245:
+    97181:  246:int GetNext(Iterator *iter, int *value) {
+    97181:  247:	if(iter == NULL) {
+      120:  248:		perror("Bad iter pointer");
+      120:  249:		return -1;
+        -:  250:	}
+    97061:  251:	if(IsThereNext(iter)) {
+    97059:  252: 		iter->current = iter->current->next;
+    97059:  253:		*value = iter->current->data;
+    97059:  254:		return 1;
+        -:  255:	}
+        2:  256:	perror("No more items left");
+        2:  257:	return 0;
+        -:  258:}
+        -:  259:
+      200:  260:int PrintListFurther(Iterator *iter) {
+      200:  261:	if(iter == NULL) {
+      102:  262:		perror("Bad iter pointer");
+      102:  263:		return -1;
+        -:  264:	}
+       98:  265:	int i = 1;
+      488:  266:	for (; iter->current; iter->current = iter->current->next, i++) {
+      390:  267:		printf("(%d,%d) -> ", i, iter->current->data);   
+        -:  268:	}
+       98:  269:	printf( "NULL\n" );
+       98:  270:	return 1;
+        -:  271:}
+        -:  272:
+        -:  273:
+      689:  274:void DeleteIterator(Iterator *iter) {
+      689:  275:	if(iter == NULL) {
+      106:  276:		perror("Bad iter pointer");
+      106:  277:		return;
+        -:  278:	}
+      583:  279:	free(iter);
+        -:  280:}
+        -:  281:
+      200:  282:int RestartIter(Iterator *iter) {
+      200:  283:	if(iter == NULL) {
+      104:  284:		perror("Bad iter pointer");
+      104:  285:		return -1;
+        -:  286:	}
+       96:  287:	iter->current = iter->head;
+       96:  288:	return 0;
+        -:  289:}

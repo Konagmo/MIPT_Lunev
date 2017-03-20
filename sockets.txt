@@ -1,0 +1,53 @@
+fd два буфера на отправку и на получение
+Cоздается системным вызовом socket
+fd = socket(PF_INET ИЛИ PF_UNIX, выбор tcp udp - SOCK_STREAM|SOCK_DGRAM, 0)
+
+сокет, который есть, перевести в состояние одидания соединения
+listen(fd, размер очереди сокетов которые будет на этом соединении жить 128);
+
+присвоить сокету порт и ip адркесс на котором ждем
+bind(fd, &addr, sizeoff(addr));
+fd1=accept(fd, &addr, sizeof(addr));
+читать и писать в fd1
+
+Как заполнять адресс
+struct sockaddr_in addr;
+
+заполняем типизатор
+addr.sim_family = AF_INET;
+addr.sin+port   = htons(port); //в сетевом порядке байт
+addr.sin_addr.s_addr = htonl(INADDR_ANY);
+
+
+Клиент:
+fd = socket(PF_INET, SOCK_STREAM, 0); случай tcp
+
+addr.sim_family = AF_INET;
+addr.sin+port   = htons(port); //в сетевом порядке байт
+addr.sin_addr.s_addr = (); <- inet_aton str // str="127.0.0.1"
+
+connect(fd, &addr, sizeof(addr));
+
+1) "127.0.0.1" udp - я готов принимать работу, создаем udp сокет и подключаемся
+2) разрыв
+3) повторное открытие
+
+Программа отправляет запрост всем
+Они кидают ответ
+recieveform
+recvfrom() - ip адресс, того кто отозвался
+
+
+Server:
+socket(PF_INET, SOCK_DGRAM)
+bind
+recvfrom -> ip_addr
+tcp socket
+ip_addr:port <- ...?
+allow broadcasts
+send
+while() { по количесву потоков для вычислений
+	recvfrom() -> addr/port
+	connect(addr/port)
+	...
+} 
