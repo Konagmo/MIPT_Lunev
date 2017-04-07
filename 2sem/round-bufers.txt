@@ -1,0 +1,14 @@
+Кольцевые буфера
+fd->fd
+memmove - Долго+ошибки
+
+size = head-tail
+
+->readv
+
+Scmpexchg(addr, oldvalue, newvalue)
+if (*addr==oldvalue){
+	*addr = newval;
+	return newval;
+} else 
+	return *addr;

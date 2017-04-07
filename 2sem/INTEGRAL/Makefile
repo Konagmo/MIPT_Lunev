@@ -1,22 +1,30 @@
-CC = gcc
-CFLAGS = -g -Wall -Werror -pthread
+CC              =  gcc
+CFLAGS          = -Wall -g -O0 -std=c11
+LIBS            = -lm -lpthread
 
-SOURCES = integral.c $(EXECUTABLE).c
-OBJECTS = $(SOURCES:.c = .o)
-EXECUTABLE = integral
+SOURCES         = $(EXECUTABLE).c
+OBJECTS         = $(SOURCES:.c=.o)
+EXECUTABLE      = integral
+
 
 all: $(EXECUTABLE)
 
 $(EXECUTABLE): $(OBJECTS)
-	$(CC) $(CFLAGS) -o $@ $^
+	$(CC) $(CFLAGS) -o $@ $^ $(LIBS)
 
-%.o:%.c
-	$(CC) -c -MD $(CFLAGS) $(GCOV_FLAGS) -o $@ $<
+%.o: %.c
+	$(CC) -c $(CFLAGS) -o $@ $<
 
 -include $(wildcard *.d)
 
-valgrind:
-	valgrind ./$(EXECUTABLE)
+make_clean: all clean
 
 clean:
-	rm -f *.o *.d main.out
+	rm -f *.o *.d
+
+clean_all:
+	rm -f *.o *.d $(EXECUTABLE)
+
+
+
+.PHONY: all clean

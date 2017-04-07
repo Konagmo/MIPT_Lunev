@@ -1,23 +1,28 @@
+#define _GNU_SOURCE             
 #include <stdio.h>
 #include <unistd.h>
 #include <pthread.h>
 #include <stdlib.h>
 #include <math.h>
-#define NUM 30.0
+#include <sched.h>
 
-//integral(x^2) = (x^3)/3 
+#define NUM 100.0
 
-//volatile int running_threads = 0;
-
-struct start_end_point {
+typedef  struct slave_ {
     double start_point;
     double end_point;
-};
+    pthread_t *pthreads_id;
+    int cpu;
+    char trash [100];
+} Slave;
 
-void *thread_func(void *structure) {
-    // printf("here %d\n", (int)count);
-    double start_point = (*(struct start_end_point *)structure).start_point;
-    double end_point = (*(struct start_end_point *)structure).end_point;
+void *thread_job(void *thr) {
+    cpu_set_t cpu_set;
+    CPU_ZERO(&cpu_set);
+    CPU_SET((*(Slave*)thr).cpu , &cpu_set);
+    pthread_setaffinity_np(*(*(Slave*)thr).pthreads_id, sizeof(cpu_set_t), &cpu_set);
+    double start_point = (*(Slave*)thr).start_point;
+    double end_point = (*(Slave*)thr).end_point;
     double counter = start_point;
     double dx = 0.00000001;
     double sum = 0;
@@ -26,42 +31,49 @@ void *thread_func(void *structure) {
         sum += counter*counter*dx;
         counter +=dx;
     }
-    (*(struct start_end_point *)structure).start_point = sum;
+    (*(Slave*)thr).start_point = sum; 
     return NULL;
 }
 
-
 int main(int argc, const char * argv[]) {
 
-    int n;
-    
-    if(argc > 1)
-        n = (int) strtol(argv[1], NULL, 10);
-    else {
-        printf("Enter num of theads!\n");
+
+    if(argc != 2) {
+        printf("Enter number of threads!\n");
         return 0;
     }
 
+    int n, max;
+    max = sysconf(_SC_NPROCESSORS_ONLN);
+    Slave sections[max];
+   // printf("%p   %p\n", &sections[0], &sections[1]);
+    n = (int) strtol(argv[1], NULL, 10);
+    n = n > max ? max : n;
+    double sum = 0;
 
-    pthread_t *pthreads_ids = malloc(n*sizeof(pthread_t));
-    struct start_end_point *points = calloc(n, sizeof(struct start_end_point));
-    double integral_sum = 0;
-
-
-    for(int i = 0; i < n; i++) {
-        points[i].start_point = (NUM/n)*i;
-        points[i].end_point = points[i].start_point + (NUM/n);
-        pthread_create(&pthreads_ids[i], NULL, thread_func,(void *)&(points[i]));
+    for(int i = 0; i < max; i++) {       
+        if(i < n) {
+            sections[i].start_point = (NUM/n)*i;
+            sections[i].end_point = sections[i].start_point + (NUM/n);
+            sections[i].cpu = i % n;
+            pthread_create(&(sections[i].pthreads_id), NULL, thread_job, (void *)&(sections[i]));
+        }
+        else {
+            sections[i].start_point = (NUM/n)*0;
+            sections[i].end_point = sections[i].start_point + (NUM/n);
+            sections[i].cpu = i % max;
+            pthread_create(&(sections[i].pthreads_id), NULL, thread_job, (void *)&(sections[i]));
+        }   
+    }
+    for(int i = 0; i < max; i++) {
+        pthread_join(sections[i].pthreads_id, NULL);
+        if(i < n)
+            sum += sections[i].start_point;
     }
 
-    for(int i = 0; i < n; i++) {
-        pthread_join(pthreads_ids[i], NULL);
-        integral_sum += points[i].start_point;
-    }
-
-    printf("%lf\n",integral_sum);
-    free(pthreads_ids);
-    free(points);
+    printf("%f\n", (float)sum);
+    //free(pthreads_ids);
+    //free(sections);
 
     return 0;
 }
