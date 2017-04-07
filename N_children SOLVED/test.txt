@@ -1,1 +1,0 @@
-while /bin/true; do ./a.out 10; done
